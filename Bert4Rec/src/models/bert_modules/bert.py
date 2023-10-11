@@ -1,10 +1,11 @@
-from torch import nn as nn
-import torch
-from src.models.bert_modules.embedding.bert import BERTEmbedding
-from src.models.bert_modules.transformer import TransformerBlock
 import random
 import numpy as np
+from torch import nn as nn
+import torch
 import torch.backends.cudnn as cudnn
+from src.models.bert_modules.embedding.bert import BERTEmbedding
+from src.models.bert_modules.transformer import TransformerBlock
+
 
 def fix_random_seed_as(random_seed):
     random.seed(random_seed)
@@ -13,6 +14,7 @@ def fix_random_seed_as(random_seed):
     np.random.seed(random_seed)
     cudnn.deterministic = True
     cudnn.benchmark = False
+
 
 class BERT(nn.Module):
     """
@@ -40,7 +42,8 @@ class BERT(nn.Module):
         dropout = bert_dropout
 
         # embedding for BERT, sum of positional, segment, token embeddings
-        self.embedding = BERTEmbedding(vocab_size=vocab_size, embed_size=self.hidden, max_len=max_len, dropout=dropout)
+        self.embedding = BERTEmbedding(vocab_size=vocab_size, embed_size=self.hidden,
+                                       max_len=max_len, dropout=dropout)
 
         # multi-layers transformer blocks, deep network
         self.transformer_blocks = nn.ModuleList(

@@ -1,13 +1,11 @@
-#from pytorch_lightning import LightningDataModule
-from torch.utils.data import DataLoader, Dataset
-from .negative_samplers.random import get_negative_samples #RandomNegativeSampler #negative_sampler_factory
-from pytorch_lightning import LightningDataModule
+import random
+from typing import Optional
 import torch
-from src.datasets.ml_1m import load_dataset, _get_preprocessed_folder_path
+from torch.utils.data import DataLoader, Dataset
+from pytorch_lightning import LightningDataModule
 from src.datasets.create_dataset import create
-import random
-#ML1MDataset#dataset_factory
-import random
+from src.datasets.ml_1m import load_dataset, _get_preprocessed_folder_path
+from .negative_samplers.random import get_negative_samples
 
 
 class BertTrainDataset(Dataset):
@@ -18,7 +16,9 @@ class BertTrainDataset(Dataset):
             u2seq: словарь юзеров, где для каждого юзера записана последовательность токенов(итемов)
             max_len: длина заполнения истории, так как для юзеров длина последовательности разная
             mask_prob: вероятность выбора того или иного токена
+            mask_token: маска для лейблов, которые мы хотим предсказывать
             num_items: количество итемов
+            rng: генератор случайных вероятностей
         """
         self.u2seq = u2seq
         self.users = sorted(self.u2seq.keys())
@@ -64,7 +64,6 @@ class BertTrainDataset(Dataset):
         return torch.LongTensor(tokens), torch.LongTensor(labels)
 
 
-
 class BertEvalDataset(Dataset):
     def __init__(self, u2seq, u2answer, max_len, mask_token, negative_samples):
         self.u2seq = u2seq
@@ -96,7 +95,6 @@ class BertEvalDataset(Dataset):
 
 
 class BertDataModule(LightningDataModule):
-
     def __init__(self,
                  name_file,
                  data_path,
@@ -111,15 +109,14 @@ class BertDataModule(LightningDataModule):
                  train_batch_size,
                  val_batch_size,
                  test_batch_size,
-                 num_workers: int = 0,
-                 pin_memory: bool = False,
-                 create_data: bool = True
-    ):
+                 num_workers,
+                 pin_memory):
+
         super().__init__()
         self.seed = seed
         self.rng = random.Random(self.seed)
         self.save_folder = _get_preprocessed_folder_path()
-        create(data_path + init_file, name_file, create_data)
+        create(data_path + init_file, name_file)
         dataset = load_dataset(data_path, name_file)
         self.train = dataset['train']
         self.val = dataset['val']
@@ -128,8 +125,7 @@ class BertDataModule(LightningDataModule):
         self.smap = dataset['smap']
         self.user_count = len(self.umap)
         self.item_count = len(self.smap)
-        num_items = len(self.smap)
-        self.CLOZE_MASK_TOKEN = self.item_count + 1
+        self.cloze_mask_token = self.item_count + 1
         self.train_negative_sample_size = train_negative_sample_size
         self.test_negative_sample_size = test_negative_sample_size
         self.train_negative_sampling_seed = train_negative_sampling_seed
@@ -171,7 +167,8 @@ class BertDataModule(LightningDataModule):
     # assign data to `Dataset`(s)
 
     def train_dataloader(self):
-        self.data_train = BertTrainDataset(self.train, self.max_len, self.mask_prob, self.CLOZE_MASK_TOKEN,
+        self.data_train = BertTrainDataset(self.train, self.max_len,
+                                           self.mask_prob, self.cloze_mask_token,
                                            self.item_count, self.rng)
         return DataLoader(
             dataset=self.data_train,
@@ -182,7 +179,8 @@ class BertDataModule(LightningDataModule):
         )
 
     def val_dataloader(self):
-        self.data_val = BertEvalDataset(self.train, self.val, self.max_len, self.CLOZE_MASK_TOKEN,
+        self.data_val = BertEvalDataset(self.train, self.val, self.max_len,
+                                        self.cloze_mask_token,
                                         self.test_negative_samples)
         return DataLoader(
             dataset=self.data_val,
@@ -193,7 +191,8 @@ class BertDataModule(LightningDataModule):
         )
 
     def test_dataloader(self):
-        self.data_test = BertEvalDataset(self.train, self.test, self.max_len, self.CLOZE_MASK_TOKEN,
+        self.data_test = BertEvalDataset(self.train, self.test, self.max_len,
+                                         self.cloze_mask_token,
                                          self.test_negative_samples)
         return DataLoader(
             dataset=self.data_test,

@@ -1,10 +1,10 @@
-#from .base import BaseModel
-from .bert_modules.bert import BERT
+from typing import Any, List
 from pytorch_lightning import LightningModule
 import torch.nn as nn
-from typing import Any, List, Optional
 import torch
 from src.utils.metrics import calculate_loss, calculate_metrics
+from .bert_modules.bert import BERT
+
 
 def get_optimizer(name, model_params, params):
     """
@@ -53,8 +53,8 @@ class BERTModel(LightningModule):
         super().__init__()
         self.lr = lr
         self.weight_decay = weight_decay
-        self.bert = BERT(model_init_seed, bert_max_len, num_items, bert_num_blocks, bert_num_heads, \
-                         bert_hidden_units, bert_dropout)
+        self.bert = BERT(model_init_seed, bert_max_len, num_items, bert_num_blocks,
+                         bert_num_heads, bert_hidden_units, bert_dropout)
         self.out = nn.Linear(self.bert.hidden, num_items + 1)
 
     def forward(self, x):
@@ -65,7 +65,8 @@ class BERTModel(LightningModule):
         """
 
         Args:
-            batch: батч, который состоит из последовательности категорий и последовательности истинных лейблов,
+            batch: батч, который состоит из последовательности категорий и
+            последовательности истинных лейблов,
             в случае валидации и инференса добавляется последовательность кандидатов
             stage: трейн или тест(валид)
 
@@ -89,7 +90,8 @@ class BERTModel(LightningModule):
         """
 
         Args:
-            batch: батч, который состоит из последовательности категорий и последовательности истинных лейблов
+            batch: батч, который состоит из последовательности категорий и
+            последовательности истинных лейблов
 
         Returns:
         В логи передаем лосс, можно использовать cometa для просмотра качества обучения
@@ -109,7 +111,8 @@ class BERTModel(LightningModule):
         """
 
         Args:
-            batch: батч, который состоит из последовательности категорий и последовательности истинных лейблов,
+            batch: батч, который состоит из последовательности категорий и
+            последовательности истинных лейблов,
             также последовательность кандидатов
 
         Returns:
@@ -192,7 +195,8 @@ class BERTModel(LightningModule):
         """
 
         Args:
-            batch: батч, который состоит из последовательности категорий и последовательности истинных лейблов,
+            batch: батч, который состоит из последовательности категорий и
+            последовательности истинных лейблов,
             также последовательность кандидатов
 
         Returns:

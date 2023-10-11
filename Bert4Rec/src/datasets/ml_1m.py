@@ -1,26 +1,26 @@
-from datetime import date
-from .utils import *
+from pathlib import Path
+import pickle
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-from pathlib import Path
-import os
-import tempfile
-import shutil
-import pickle
-from torch.utils.data import Dataset
-#tqdm.pandas()
+from .utils import *
+
 RAW_DATASET_ROOT_FOLDER = '/NOTEBOOK/RecSystem/RecSystemFinal/Bert4Rec/Data/'
+
+
 def code():
     return 'santander'
+
+
 def zip_file_content_is_folder():
     return True
+
 
 def all_raw_file_names():
     return ['README',
             'movies.dat',
             'ratings.dat',
             'users.dat']
+
 
 def load_ratings_df(data_path, name_file):
     #folder_path = _get_rawdata_folder_path()
@@ -30,11 +30,13 @@ def load_ratings_df(data_path, name_file):
     print(df)
     return df
 
+
 def load_dataset(data_path, name_file):
     preprocess(data_path, name_file)
     dataset_path = _get_preprocessed_dataset_path()
     dataset = pickle.load(dataset_path.open('rb'))
     return dataset
+
 
 def preprocess(data_path, name_file):
     dataset_path = _get_preprocessed_dataset_path()
@@ -47,6 +49,7 @@ def preprocess(data_path, name_file):
     df = load_ratings_df(data_path, name_file)
     df = make_implicit(df)
     df = filter_triplets(df)
+    #print('df', df)
     df, umap, smap = densify_index(df)
     train, val, test = split_df(df, len(umap))
     dataset = {'train': train,
@@ -57,12 +60,14 @@ def preprocess(data_path, name_file):
     with dataset_path.open('wb') as f:
         pickle.dump(dataset, f)
 
+
 def make_implicit(df, min_rating=0):
     print('Turning into implicit ratings')
     df = df[df['rating'] >= min_rating]
     # return df[['uid', 'sid', 'timestamp']]
     #print(len(df))
     return df
+
 
 def filter_triplets(df, min_sc=0, min_uc=10):
     print('Filtering triplets')
@@ -78,6 +83,7 @@ def filter_triplets(df, min_sc=0, min_uc=10):
 
     return df
 
+
 def densify_index(df):
     print('Densifying index')
     umap = {u: i for i, u in enumerate(set(df['uid']))}
@@ -86,18 +92,20 @@ def densify_index(df):
     df['sid'] = df['sid'].map(smap)
     return df, umap, smap
 
+
 def split_df(df, user_count, split='leave_one_out'):
     if split == 'leave_one_out':
         print('Splitting')
         user_group = df.groupby('uid')
         user2items = user_group.apply(lambda d: list(d.sort_values(by='timestamp')['sid']))
+        print(user2items)
         train, val, test = {}, {}, {}
         for user in range(user_count):
             items = user2items[user]
-            train[user], val[user], test[user] = items[:-6], items[-6:-3], items[-3:]#items[:-2], items[-2:-1], items[-1:]
+            train[user], val[user], test[user] = items[:-6], items[-6:-3], items[-3:]
 
         return train, val, test
-    elif split == 'holdout':
+    if split == 'holdout':
         print('Splitting')
         np.random.seed(98765)
         eval_set_size = 500 #self.args.eval_set_size
@@ -121,22 +129,27 @@ def split_df(df, user_count, split='leave_one_out'):
     else:
         raise NotImplementedError
 
+
 def _get_rawdata_root_path():
     return Path(RAW_DATASET_ROOT_FOLDER)
+
 
 def _get_rawdata_folder_path():
     root = _get_rawdata_root_path()
     return root.joinpath(code())
 
+
 def _get_preprocessed_root_path():
     root = _get_rawdata_root_path()
     return root.joinpath('preprocessed')
+
 
 def _get_preprocessed_folder_path(min_rating=0, min_uc=5, min_sc=0, split='leave_one_out'):
     preprocessed_root = _get_preprocessed_root_path()
     folder_name = '{}_min_rating{}-min_uc{}-min_sc{}-split{}' \
         .format(code(), min_rating, min_uc, min_sc, split)
     return preprocessed_root.joinpath(folder_name)
+
 
 def _get_preprocessed_dataset_path():
     folder = _get_preprocessed_folder_path()
