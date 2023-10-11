@@ -1,51 +1,43 @@
-import pandas as pd
-import warnings
-warnings.filterwarnings('ignore')
-import dask
-import dask.dataframe as dd
-from scipy.sparse import csr_matrix
-import numpy as np
-import pickle
-from tqdm import tqdm
-from collections import Counter
-import random
-import cmd
 import os
+import pandas as pd
+import numpy as np
 
-cols = ['fetch_date', 'cust_code', 'emp_index', 'country', 'sex', 'age', 'cust_date', 'new_cust', 'cust_seniority',
-            'indrel', 'last_date_as_primary', 'cust_type', 'cust_rel', 'residence_index', 'foreigner_index',
-            'spouse_index',
-            'joining_channel', 'deceased', 'address_type', 'prov_code', 'prov_name', 'activity_index', 'income',
-            'segmentation',
-            'savings_account', 'guarentees', 'current_account', 'derivative_account', 'payroll_account',
-            'junior_account', 'mas_account',
-            'perticular_account', 'perticular_plus', 'st_deposit', 'mt_deposits', 'lt_deposits', 'e_account', 'funds',
-            'mortgage',
-            'pension', 'loan', 'tax', 'credit_card', 'securities', 'home_account', 'payroll', 'pension2', 'direct_debit'
-            ]
 
-target_columns = ['savings_account', 'guarentees', 'current_account', 'derivative_account', 'payroll_account',
-                      'junior_account', 'mas_account',
-                      'perticular_account', 'perticular_plus', 'st_deposit', 'mt_deposits', 'lt_deposits', 'e_account',
-                      'funds', 'mortgage',
-                      'pension', 'loan', 'tax', 'credit_card', 'securities', 'home_account', 'payroll', 'pension2',
-                      'direct_debit']
+cols = ['fetch_date', 'cust_code', 'emp_index', 'country', 'sex',
+        'age', 'cust_date', 'new_cust', 'cust_seniority',
+        'indrel', 'last_date_as_primary', 'cust_type', 'cust_rel',
+        'residence_index', 'foreigner_index', 'spouse_index',
+        'joining_channel', 'deceased', 'address_type', 'prov_code',
+        'prov_name', 'activity_index', 'income', 'segmentation',
+        'savings_account', 'guarentees', 'current_account', 'derivative_account',
+        'payroll_account', 'junior_account', 'mas_account', 'perticular_account',
+        'perticular_plus', 'st_deposit', 'mt_deposits', 'lt_deposits', 'e_account', 'funds',
+        'mortgage', 'pension', 'loan', 'tax', 'credit_card', 'securities',
+        'home_account', 'payroll', 'pension2', 'direct_debit']
 
-user_features = ['fetch_date', 'cust_code', 'emp_index', 'country', 'sex', 'age', 'cust_date', 'new_cust',
-                     'cust_seniority',
-                     'indrel', 'last_date_as_primary', 'cust_type', 'cust_rel', 'residence_index', 'foreigner_index',
-                     'spouse_index',
-                     'joining_channel', 'deceased', 'address_type', 'prov_code', 'prov_name', 'activity_index',
-                     'income', 'segmentation']
+
+target_columns = ['savings_account', 'guarentees', 'current_account', 'derivative_account',
+                  'payroll_account', 'junior_account', 'mas_account', 'perticular_account',
+                  'perticular_plus', 'st_deposit', 'mt_deposits', 'lt_deposits', 'e_account',
+                  'funds', 'mortgage', 'pension', 'loan', 'tax', 'credit_card', 'securities',
+                  'home_account', 'payroll', 'pension2', 'direct_debit']
+
+user_features = ['fetch_date', 'cust_code', 'emp_index', 'country', 'sex', 'age', 'cust_date',
+                 'new_cust', 'cust_seniority', 'indrel', 'last_date_as_primary', 'cust_type',
+                 'cust_rel', 'residence_index', 'foreigner_index', 'spouse_index',
+                 'joining_channel', 'deceased', 'address_type', 'prov_code', 'prov_name',
+                 'activity_index', 'income', 'segmentation']
+
 
 def preprocess_missing_values(data):
     data[target_columns] = data[target_columns].fillna(0)
     return data
 
-def create(path, name_file, create = True):
+
+def create(path, name_file):
     global user_features
 
-    if os.path.exists(path):
+    if os.path.exists(os.path.dirname(path) + '/' + 'santander' + '/' + f'{name_file}.dat'):
         print('Already create santander.dat')
         return 'skip'
     print('Path init --- ', path)
@@ -86,7 +78,8 @@ def create(path, name_file, create = True):
     new_purchases = new_purchases[(new_purchases[target_columns].sum(axis=1) > 0)]
 
     user_info = user_features
-    new_purchases = data[user_info].merge(new_purchases, on=['fetch_date', 'cust_code'], how='right')
+    new_purchases = data[user_info].merge(new_purchases, on=['fetch_date', 'cust_code'],
+                                          how='right')
     new_purchases['fetch_date'] = pd.to_datetime(new_purchases['fetch_date'])
 
     np.sort(new_purchases["fetch_date"].unique())
@@ -94,16 +87,17 @@ def create(path, name_file, create = True):
     train_caser = new_purchases
 
     user_data = new_purchases.drop_duplicates(subset=['cust_code'], keep='last')[
-        ['cust_code', 'emp_index', 'country', 'sex', 'age', 'cust_date', 'new_cust', 'cust_seniority',
-         'indrel', 'cust_type', 'cust_rel', 'residence_index', 'foreigner_index', 'spouse_index',
-         'joining_channel', 'deceased', 'address_type', 'prov_code', 'prov_name', 'activity_index',
-         'income', 'segmentation']]
+        ['cust_code', 'emp_index', 'country', 'sex', 'age', 'cust_date', 'new_cust',
+         'cust_seniority', 'indrel', 'cust_type', 'cust_rel', 'residence_index',
+         'foreigner_index', 'spouse_index', 'joining_channel', 'deceased', 'address_type',
+         'prov_code', 'prov_name', 'activity_index', 'income', 'segmentation']]
 
     user_purchases = new_purchases[['cust_code'] + target_columns].groupby(by='cust_code').sum()
 
     user_features = user_data.merge(user_purchases, on='cust_code', how='right')
 
-    train_caser = train_caser.sort_values(['cust_code', 'fetch_date'])[['cust_code', 'fetch_date'] + target_columns]
+    train_caser = train_caser.sort_values(['cust_code', 'fetch_date'])[['cust_code', 'fetch_date']
+                                                                       + target_columns]
 
     target_dict = {target_columns[i]: i for i in range(len(target_columns))}
 

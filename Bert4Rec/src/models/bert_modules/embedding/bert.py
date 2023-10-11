@@ -7,9 +7,10 @@ class BERTEmbedding(nn.Module):
     """
     Эмбеддинг BERT, которое состоит из нижеприведенных функций
         1. Представление токена: обычная матрица эмбеддингов
-        2. Позиционное представление: добавление позиционной информации с использованием sin, cos
-        2. Эмбеддинг сегмента: добавление segmentinfo предложения, (sent_A:1, cent_B:2) (не используем)
-
+        2. Позиционное представление: добавление позиционной информации
+        с использованием sin, cos
+        2. Эмбеддинг сегмента: добавление segmentinfo предложения, (sent_A:1, cent_B:2)
+        (не используем)
         сумма всех этих функций является представлением BERT
     """
 
@@ -26,10 +27,9 @@ class BERTEmbedding(nn.Module):
         super().__init__()
         self.token = TokenEmbedding(vocab_size=vocab_size, embed_size=embed_size)
         self.position = PositionalEmbedding(max_len=max_len, d_model=embed_size)
-        # self.segment = SegmentEmbedding(embed_size=self.token.embedding_dim)
         self.dropout = nn.Dropout(p=dropout)
         self.embed_size = embed_size
 
     def forward(self, sequence):
-        x = self.token(sequence) + self.position(sequence)  # + self.segment(segment_label)
+        x = self.token(sequence) + self.position(sequence)
         return self.dropout(x)

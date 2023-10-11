@@ -1,30 +1,13 @@
-#from .base import AbstractNegativeSampler
-
-from tqdm import trange
-from torch.utils.data import Dataset
-import numpy as np
 from pathlib import Path
 import pickle
+from tqdm import trange
+import numpy as np
 
-# class RandomNegativeSampler():
-#     def __init__(self, train, val, test, user_count, item_count, sample_size, seed, save_folder):
-#         self.train = train
-#         self.val = val
-#         self.test = test
-#         self.user_count = user_count
-#         self.item_count = item_count
-#         self.sample_size = sample_size
-#         self.seed = seed
-#         self.save_folder = save_folder
-#     @classmethod
-#     def code(cls):
-#         return 'random'
 
 def generate_negative_samples(train, val, test, user_count, item_count, train_negative_sample_size,
                               train_negative_sampling_seed):
     assert train_negative_sampling_seed is not None, 'Specify seed for random sampling'
     np.random.seed(train_negative_sampling_seed)
-    #np.random.seed(self.seed)
     items = np.arange(item_count) + 1
     prob = np.ones_like(items)
     prob = prob / prob.sum()
@@ -32,7 +15,6 @@ def generate_negative_samples(train, val, test, user_count, item_count, train_ne
     negative_samples = {}
     print('Sampling negative items')
     for user in trange(user_count):
-        #print(train[user])
         if isinstance(train[user][1], tuple):
             seen = set(x[0] for x in train[user])
             seen.update(x[0] for x in val[user])
@@ -41,16 +23,6 @@ def generate_negative_samples(train, val, test, user_count, item_count, train_ne
             seen = set(train[user])
             seen.update(val[user])
             seen.update(test[user])
-
-        # samples = []
-        # for _ in range(train_negative_sample_size):
-        #     item = np.random.choice(item_count) + 1
-        #     #print(samples)
-        #     while item in seen or item in samples:
-        #         item = np.random.choice(item_count) + 1
-        #     samples.append(item)
-        #
-        # negative_samples[user] = samples
         zeros = np.array(list(seen)) - 1  # items start from 1
         p = prob.copy()
         p[zeros] = 0.0
@@ -61,9 +33,11 @@ def generate_negative_samples(train, val, test, user_count, item_count, train_ne
 
     return negative_samples
 
+
 def get_negative_samples(train, val, test, user_count, item_count, train_negative_sample_size,
                          train_negative_sampling_seed, save_folder):
-    savefile_path = _get_save_path(save_folder, train_negative_sample_size, train_negative_sampling_seed)
+    savefile_path = _get_save_path(save_folder, train_negative_sample_size,
+                                   train_negative_sampling_seed)
     if savefile_path.is_file():
         print('Negatives samples exist. Loading.')
         negative_samples = pickle.load(savefile_path.open('rb'))
@@ -75,6 +49,7 @@ def get_negative_samples(train, val, test, user_count, item_count, train_negativ
     with savefile_path.open('wb') as f:
         pickle.dump(negative_samples, f)
     return negative_samples
+
 
 def _get_save_path(save_folder, train_negative_sample_size, train_negative_sampling_seed):
     folder = Path(save_folder)
