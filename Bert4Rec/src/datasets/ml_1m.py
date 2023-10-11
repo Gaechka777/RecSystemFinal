@@ -10,7 +10,7 @@ import shutil
 import pickle
 from torch.utils.data import Dataset
 #tqdm.pandas()
-RAW_DATASET_ROOT_FOLDER = '/NOTEBOOK/RecSystem/RecSystemFinal/BERT4Rec/Data/'
+RAW_DATASET_ROOT_FOLDER = '/NOTEBOOK/RecSystem/RecSystemFinal/Bert4Rec/Data/'
 def code():
     return 'santander'
 def zip_file_content_is_folder():
