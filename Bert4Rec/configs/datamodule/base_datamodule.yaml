@@ -1,0 +1,18 @@
+_target_: src.datamodules.base_datamodule.BertDataModule #dataloader_factory
+
+name_file: 'santander'
+data_path: '/NOTEBOOK/RecSystem/RecSystemFinal/BERT4Rec/Data/'
+init_file: 'train_ver2.csv'
+seed: 42
+bert_max_len: 100
+bert_mask_prob: 0.15
+train_negative_sample_size: 0
+train_negative_sampling_seed: 0
+test_negative_sample_size: 4
+test_negative_sampling_seed: 98765
+train_batch_size: 64
+val_batch_size: 64
+test_batch_size: 64
+num_workers: 0
+pin_memory: False
+create_data: True
