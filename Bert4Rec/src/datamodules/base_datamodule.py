@@ -111,7 +111,6 @@ class BertDataModule(LightningDataModule):
                  test_batch_size,
                  num_workers,
                  pin_memory):
-
         super().__init__()
         self.seed = seed
         self.rng = random.Random(self.seed)
