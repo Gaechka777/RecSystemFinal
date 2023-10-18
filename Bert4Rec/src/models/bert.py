@@ -48,10 +48,14 @@ class BERTModel(LightningModule):
             bert_hidden_units,
             bert_dropout,
             lr,
-            weight_decay
+            weight_decay,
+            cand_need,
+            k_labels
     ):
         super().__init__()
         self.lr = lr
+        self.cand_need = cand_need
+        self.k_labels = k_labels
         self.weight_decay = weight_decay
         self.bert = BERT(model_init_seed, bert_max_len, num_items, bert_num_blocks,
                          bert_num_heads, bert_hidden_units, bert_dropout)
@@ -83,7 +87,8 @@ class BERTModel(LightningModule):
         if stage == 'val' or stage == 'test':
             seqs, candidates, labels = batch
             outputs = self.forward(seqs)
-            metrics = calculate_metrics(outputs, candidates, labels)
+            metrics = calculate_metrics(outputs, candidates, labels, stage, self.cand_need,
+                                        self.k_labels)
             return outputs, metrics
 
     def training_step(self, batch: Any, batch_idx: int):

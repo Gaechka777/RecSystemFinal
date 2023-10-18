@@ -9,3 +9,5 @@ bert_num_heads: 4
 bert_dropout: 0.1
 lr: 0.003
 weight_decay: 0
+cand_need: False
+k_labels: 3

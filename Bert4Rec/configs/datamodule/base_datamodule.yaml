@@ -3,6 +3,8 @@ _target_: src.datamodules.base_datamodule.BertDataModule #dataloader_factory
 name_file: 'santander'
 data_path: '/NOTEBOOK/RecSystem/RecSystemFinal/Bert4Rec/Data/'
 init_file: 'train_ver2.csv'
+k_labels: 3
+min_uc: 10
 seed: 42
 bert_max_len: 100
 bert_mask_prob: 0.15

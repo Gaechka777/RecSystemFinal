@@ -18,7 +18,7 @@ def calculate_loss(logits, labels):
     return loss
 
 
-def calculate_metrics(scores, candidates, labels):
+def calculate_metrics(scores, candidates, labels, stage, cand_need, k_labels):
     """
 
     Args:
@@ -30,8 +30,18 @@ def calculate_metrics(scores, candidates, labels):
     Словарь метрик
     """
     scores = scores[:, -1, :]
+    if stage == 'test':
+        if cand_need:
+            sc_cand = scores.gather(1, candidates)
+            #print('candidates before -- ', candidates)
+            r = (-sc_cand).argsort(dim=1)
+            print('Candidates for each clients -- ', candidates.gather(1, r))
+        else:
+            print('scores', scores)
+            print(f'{k_labels} candidates for each clients', (-scores).argsort(dim=1)[:, :k_labels])
     scores = scores.gather(1, candidates)
-    metrics = recalls_and_ndcgs_for_ks(scores, labels, [1, 2, 3])
+
+    metrics = recalls_and_ndcgs_for_ks(scores, labels, list(range(1, k_labels + 1)))
     return metrics
 
 

@@ -31,14 +31,14 @@ def load_ratings_df(data_path, name_file):
     return df
 
 
-def load_dataset(data_path, name_file):
-    preprocess(data_path, name_file)
+def load_dataset(data_path, name_file, k_labels=3, min_uc=10):
+    preprocess(data_path, name_file, k_labels, min_uc)
     dataset_path = _get_preprocessed_dataset_path()
     dataset = pickle.load(dataset_path.open('rb'))
     return dataset
 
 
-def preprocess(data_path, name_file):
+def preprocess(data_path, name_file, k_labels=3, min_uc=10):
     dataset_path = _get_preprocessed_dataset_path()
     if dataset_path.is_file():
         print('Already preprocessed. Skip preprocessing')
@@ -48,10 +48,10 @@ def preprocess(data_path, name_file):
     #maybe_download_raw_dataset()
     df = load_ratings_df(data_path, name_file)
     df = make_implicit(df)
-    df = filter_triplets(df)
+    df = filter_triplets(df, 0, min_uc)
     #print('df', df)
     df, umap, smap = densify_index(df)
-    train, val, test = split_df(df, len(umap))
+    train, val, test = split_df(df, len(umap), 'leave_one_out', k_labels)
     dataset = {'train': train,
                'val': val,
                'test': test,
@@ -77,6 +77,7 @@ def filter_triplets(df, min_sc=0, min_uc=10):
         df = df[df['sid'].isin(good_items)]
 
     if min_uc > 0:
+        print(min_uc)
         user_sizes = df.groupby('uid').size()
         good_users = user_sizes.index[user_sizes >= min_uc]
         df = df[df['uid'].isin(good_users)]
@@ -93,22 +94,23 @@ def densify_index(df):
     return df, umap, smap
 
 
-def split_df(df, user_count, split='leave_one_out'):
+def split_df(df, user_count, split='leave_one_out', k_labels=3):
     if split == 'leave_one_out':
         print('Splitting')
         user_group = df.groupby('uid')
         user2items = user_group.apply(lambda d: list(d.sort_values(by='timestamp')['sid']))
         print(user2items)
+        print(k_labels)
         train, val, test = {}, {}, {}
         for user in range(user_count):
             items = user2items[user]
-            train[user], val[user], test[user] = items[:-6], items[-6:-3], items[-3:]
+            train[user], val[user], test[user] = items[:-2*k_labels], items[-2*k_labels:-k_labels], items[-k_labels:]
 
         return train, val, test
-    if split == 'holdout':
+    elif split == 'holdout':
         print('Splitting')
         np.random.seed(98765)
-        eval_set_size = 500 #self.args.eval_set_size
+        eval_set_size = 500
 
         # Generate user indices
         permuted_index = np.random.permutation(user_count)
