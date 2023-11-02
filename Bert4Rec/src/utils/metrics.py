@@ -18,27 +18,56 @@ def calculate_loss(logits, labels):
     return loss
 
 
-def calculate_metrics(scores, candidates, labels, stage, cand_need, k_labels):
+def write_to_file(answer, path_res, batch_idx):
+    file = open(path_res, 'w')
+    file.write('user label1 label2 label3')
+    file.write("\n")
+    for k in range(len(answer)):
+        file.write(str(k + 64 * batch_idx) + ' ' + ' '.join(map(str, answer[k].tolist())))
+        file.write("\n")
+    file.close()
+
+def calculate_metrics(scores,
+                      candidates,
+                      labels,
+                      stage,
+                      cand_need,
+                      k_labels,
+                      batch_idx,
+                      path_to_res
+    ):
     """
 
     Args:
         scores: выход модели, оценка уверенности для каждой категории для определенного клиента
         candidates: кандидаты категорий, которые мы хотим рассмотреть
         labels: истинные значения
+        stage: train/val/test
+        cand_need: для вывода рекомендация для каждого пользователя, есть кандидаты или нет
+        k_labels: сколько категорий предсказываем
+        batch_idx: номер батча
+        path_to_res: путь для сохранения результатов
 
     Returns:
     Словарь метрик
     """
     scores = scores[:, -1, :]
+    path_res = f'{path_to_res}results_{batch_idx}.txt'
+
     if stage == 'test':
         if cand_need:
             sc_cand = scores.gather(1, candidates)
             #print('candidates before -- ', candidates)
             r = (-sc_cand).argsort(dim=1)
             print('Candidates for each clients -- ', candidates.gather(1, r))
+            answer = candidates.gather(1, r)
+            write_to_file(answer, path_res, batch_idx)
         else:
-            print('scores', scores)
-            print(f'{k_labels} candidates for each clients', (-scores).argsort(dim=1)[:, :k_labels])
+            #print('scores', scores)
+            answer = (-scores).argsort(dim=1)[:, :k_labels]
+            print(f'{k_labels} candidates for each clients', answer)
+            write_to_file(answer, path_res, batch_idx)
+
     scores = scores.gather(1, candidates)
 
     metrics = recalls_and_ndcgs_for_ks(scores, labels, list(range(1, k_labels + 1)))
