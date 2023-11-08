@@ -1,8 +1,8 @@
-﻿# Caser-PyTorch-Lighting
+﻿# Bert4Rec-PyTorch-Lighting
 
-A PyTorch implementation of Convolutional Sequence Embedding Recommendation Model (Caser) from the paper in Lighting pipeline:
+A PyTorch implementation Bert4Rec from the paper in Lighting pipeline:
 
-*Personalized Top-N Sequential Recommendation via Convolutional Sequence Embedding, Jiaxi Tang and Ke Wang , WSDM '18*
+*BERT4Rec: Sequential Recommendation with Bidirectional Encoder Representations from Transformer, CIKM 2019*
 
 # Requirements
 * Python 2 or 3
@@ -12,9 +12,19 @@ A PyTorch implementation of Convolutional Sequence Embedding Recommendation Mode
 * lightning
 
 # Usage
-1. Install required packages.
-2. Download dataset 'train_ver2.csv' to data folder from (https://www.kaggle.com/c/santander-product-recommendation).
-2. run <code>python train.py</code>
+Download dataset 'train_ver2.csv' to data folder from (https://www.kaggle.com/c/santander-product-recommendation).
+Install dependencies
+
+```bash
+# clone project
+git clone https://github.com/Gaechka777/RecSystem/tree/main/
+
+# install requirements
+pip install -r requirements.txt
+
+#train model
+python train.py --config-name=train_bert.yaml trainer.gpus=[0]
+```
 
 # Configurations
 
@@ -36,19 +46,8 @@ A PyTorch implementation of Convolutional Sequence Embedding Recommendation Mode
  You only need to change credentials in <code>configs/logger/comet.yaml</code>.
  
 - You can change crucial training parameters in <code>configs/train.yaml</code>.
- Also it is possible to change model`s init parameters in <code>configs/model/caser.yaml</code>.
- 
-#### Model Args (in configs)
-
-- <code>L</code>: length of sequence
-- <code>T</code>: number of targets
-- <code>d</code>: number of latent dimensions
-- <code>nv</code>: number of vertical filters
-- <code>nh</code>: number of horizontal filters
-- <code>ac_conv</code>: activation function for convolution layer (i.e., phi_c in paper)
-- <code>ac_fc</code>: activation function for fully-connected layer (i.e., phi_a in paper)
-- <code>drop_rate</code>: drop ratio when performing dropout
+ Also it is possible to change model`s init parameters in <code>configs/model/bert.yaml</code>.
 
 # Acknowledgment
 
-This project (utils.py, interactions.py, etc.) is  built on [Caser_pytorch](https://github.com/graytowne/caser_pytorch/tree/master).
+This project (utils.py, etc.) is  built on [Bert4Rec_pytorch](https://github.com/jaywonchung/BERT4Rec-VAE-Pytorch).
