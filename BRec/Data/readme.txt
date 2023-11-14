@@ -1,0 +1,1 @@
+В этой директории находятся файлы x.npy и y.npy, представляющие из себя предобработанные корректным образом для подачи в модуль BRec данные открытого датасета Santander (https://www.kaggle.com/competitions/santander-product-recommendation). Эти данные используются для тестирования модуля в режиме default.
