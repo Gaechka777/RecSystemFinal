@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from pytorch_lightning import LightningDataModule
 from src.datasets.create_dataset import create
-from src.datasets.ml_1m import load_dataset, _get_preprocessed_folder_path
+from src.datasets.santander import load_dataset, _get_preprocessed_folder_path
 from .negative_samplers.random import get_negative_samples
 
 

@@ -11,3 +11,4 @@ lr: 0.003
 weight_decay: 0
 cand_need: False
 k_labels: 3
+path_to_res: '/NOTEBOOK/RecSystem/RecSystemFinal/Bert4Rec/results/res_raw/'

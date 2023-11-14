@@ -50,10 +50,12 @@ class BERTModel(LightningModule):
             lr,
             weight_decay,
             cand_need,
-            k_labels
+            k_labels,
+            path_to_res
     ):
         super().__init__()
         self.lr = lr
+        self.path_to_res = path_to_res
         self.cand_need = cand_need
         self.k_labels = k_labels
         self.weight_decay = weight_decay
@@ -65,7 +67,7 @@ class BERTModel(LightningModule):
         x = self.bert(x)
         return self.out(x)
 
-    def step(self, batch: Any, stage: str):
+    def step(self, batch: Any, stage: str, batch_idx: int):
         """
 
         Args:
@@ -88,7 +90,7 @@ class BERTModel(LightningModule):
             seqs, candidates, labels = batch
             outputs = self.forward(seqs)
             metrics = calculate_metrics(outputs, candidates, labels, stage, self.cand_need,
-                                        self.k_labels)
+                                        self.k_labels, batch_idx, self.path_to_res)
             return outputs, metrics
 
     def training_step(self, batch: Any, batch_idx: int):
@@ -101,7 +103,7 @@ class BERTModel(LightningModule):
         Returns:
         В логи передаем лосс, можно использовать cometa для просмотра качества обучения
         """
-        loss, preds, targets = self.step(batch, 'train')
+        loss, preds, targets = self.step(batch, 'train', batch_idx)
         self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True)
 
         # we can return here dict with any tensors
@@ -123,7 +125,7 @@ class BERTModel(LightningModule):
         Returns:
         Посчитанные метрики и предсказания
         """
-        preds, metrics = self.step(batch, 'val')
+        preds, metrics = self.step(batch, 'val', batch_idx)
         self.log(
             "val/Recall@1",
             metrics['Recall@1'],
@@ -207,7 +209,7 @@ class BERTModel(LightningModule):
         Returns:
         Посчитанные метрики и предсказания
         """
-        preds, metrics = self.step(batch, 'test')
+        preds, metrics = self.step(batch, 'test', batch_idx)
         self.log(
             "test/Recall@1",
             metrics['Recall@1'],
