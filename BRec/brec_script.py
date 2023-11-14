@@ -154,27 +154,7 @@ class Transformer(nn.Module):
             return output
 
 
-def get_model(n_items: int,
-              d_model: int,
-              heads: int=5,
-              dropout: float=0.5,
-              n_layers: int=6,
-              hidden_size: int=2048,
-              weights_path: str=None,
-              device: str="cpu") -> Transformer:
-    """
-    A function for create model with given params.
-        :param n_items: int, number of items in customer set
-        :param d_model: int, dimensionality of the model
-        :param heads: int, number of heads in transformer
-        :param dropout: float, dropout rate
-        :param n_layers: int, number of layers in model
-        :param hidden_size: int, hidden embeddings size
-        :param weights_path: str, path to download weights pretrained
-        :param device: str, device
-        Returns:
-            Transformer model
-    """
+def get_model(n_items, d_model, heads=5, dropout=0.5, n_layers=6, hidden_size=2048, weights_path=None, device="cpu"):
     assert d_model % heads == 0
     assert dropout < 1
 
@@ -220,8 +200,6 @@ def precision_k_batch(k, gt, preds):
     :param k: int, scope of metric
     :param gt: list[list[int]], list of index of ground truth recommendations
     :param preds: list[list[int]], list of index of predicted recommendations
-    Returns:
-        precision_k all over the batch
     """
     precs = []
     if len(gt) == 0:
@@ -237,8 +215,6 @@ def recall_k(k, gt, preds):
     :param k: int, scope of metric
     :param gt: list[int], index of ground truth recommendations
     :param preds: list[int], index of predicted recommendations
-    Returns:
-        recall_k
     """
     c = 0
     for p in preds[:k]:
@@ -252,8 +228,6 @@ def recall_k_batch(k, gt, preds):
     :param k: int, scope of metric
     :param gt: list[list[int]], list of index of ground truth recommendations
     :param preds: list[list[int]], list of index of predicted recommendations
-    Returns:
-        recall_k all over the batch
     """
     recalls = []
     if len(gt) == 0:
@@ -269,8 +243,6 @@ def mrr_k(k, gt, preds):
     :param k: int, scope of metric
     :param gt: list[int], index of ground truth recommendations
     :param preds: list[int], index of predicted recommendations
-    Returns:
-        mrr_k
     """
     for i, p in enumerate(preds[:k]):
         if p in gt:
@@ -283,8 +255,6 @@ def mrr_k_batch(k, gt, preds):
     :param k: int, scope of metric
     :param gt: list[list[int]], list of index of ground truth recommendations
     :param preds: list[list[int]], list of index of predicted recommendations
-    Returns:
-        mrr_k all over the batch
     """
     mrr = []
     if len(gt) == 0:
@@ -300,8 +270,6 @@ def ndcg_k(k, gt, preds):
     :param k: int, scope of metric
     :param gt: list[int], index of ground truth recommendations
     :param preds: list[int], index of predicted recommendations
-    Returns:
-        ndcg_k
     """
     c = 0
     j = 0
@@ -322,8 +290,6 @@ def ndcg_k_batch(k, gt, preds):
     :param k: int, scope of metric
     :param gt: list[list[int]], list of index of ground truth recommendations
     :param preds: list[list[int]], list of index of predicted recommendations
-    Returns:
-        ndcg_k all over the batch
     """
     ndcg = []
     if len(gt) == 0:
@@ -338,8 +304,6 @@ def compute_metrics(l, p, verbose=True):
     """
         :param l: list[list[int]], list of index of ground truth recommendations
         :param p: list[list[int]], list of index of predicted recommendations
-        Returns:
-            Dictionary of metrics
     """
     tot_prec1 = precision_k_batch(1, l, p)
     tot_prec3 = precision_k_batch(3, l, p)
@@ -384,8 +348,11 @@ def print_metrics_dict(metrics):
 
 
 class CustomDataset(Dataset):
-    """Dataset for banking data containig"""
     def __init__(self, train_x, train_y, nrows=None):
+        if isinstance(train_x, str):
+            train_x = np.load(train_x)
+        if isinstance(train_y, str):
+            train_y = np.load(train_y)
         if nrows is None:
             self.data = [(x, y) for x, y in zip(train_x, train_y)]
         else:
@@ -402,13 +369,6 @@ class CustomDataset(Dataset):
 
 
 def logits_to_recs(logits):
-    """Transforms logits to recomendations
-
-    :param logits: logits from model
-    :type logits: np.array
-    :return: recomendations
-    :rtype: np.array
-    """
     logits = np.squeeze(logits)
     recs = np.argsort(logits)[::-1]
     return recs
@@ -416,29 +376,6 @@ def logits_to_recs(logits):
 
 def train_one_epoch(model, optimizer, criterion, dataset,
                     lr_scheduler, warmup_scheduler, epoch, batch_size=32, device="cpu"):
-    """Function to train model in one epoch
-
-    :param model: model to train
-    :type model: Transformer
-    :param optimizer: optimizer for model
-    :type optimizer: torch.optim
-    :param criterion: loss function
-    :type criterion: callable
-    :param dataset: train dataset
-    :type dataset: torch.utils.data.Dataset
-    :param lr_scheduler: learning rate scheduler
-    :type lr_scheduler: torch.optim.lr_scheduler
-    :param warmup_scheduler: warmup scheduler
-    :type warmup_scheduler: warmup
-    :param epoch: number of epoch
-    :type epoch: int
-    :param batch_size: batch size, defaults to 32
-    :type batch_size: int, optional
-    :param device: device for training, defaults to "cpu"
-    :type device: str, optional
-    :return: loss while epoch
-    :rtype: float
-    """
     generator = torch.utils.data.DataLoader(
         dataset, batch_size=batch_size, shuffle=True
     )
@@ -447,32 +384,20 @@ def train_one_epoch(model, optimizer, criterion, dataset,
     for batch, labels in tqdm(generator):
         batch, labels = batch.to(device), labels.to(device)
         logits = model(batch)
-        warmup_scheduler.dampen()
+        #warmup_scheduler.dampen()
         optimizer.zero_grad()
         loss = criterion(logits, labels)
         loss.backward()
         optimizer.step()
-        lr_scheduler.step()
+        #for param in model.parameters():
+        #    print(torch.norm(param.grad))
+        #lr_scheduler.step()
         tot_loss += loss.item()
     tot_loss /= len(dataset) // batch_size
     return tot_loss
 
 
-def evaluate_one_epoch(model, criterion, dataset, device="cpu", owned_items=None):
-    """Function to evaluate model in one epoch
-
-    :param model: model to estimate
-    :type model: Transformer
-    :param criterion: loss function
-    :type criterion: callable
-    :param dataset: val dataset
-    :type dataset: torch.utils.data.Dataset
-    :param device: device for training, defaults to "cpu"
-    :type device: str, optional
-    :param owned_items: items which user really owns, defaults to None
-    :type owned_items: np.array, optional
-    :return: loss and metrics
-    """
+def evaluate_one_epoch(model, criterion, dataset, device="cpu", owned_items=None, return_logits=False, return_recs=False):
     batch_size = 1
     generator = torch.utils.data.DataLoader(
         dataset, batch_size=batch_size
@@ -483,6 +408,7 @@ def evaluate_one_epoch(model, criterion, dataset, device="cpu", owned_items=None
     mrr20, ndcg20 = 0.0, 0.0
     n_users = 0
     j = 0
+    logits_, recommendations_ = [], []
     with torch.no_grad():
         for batch, labels in tqdm(generator):
             batch, labels = batch.to(device), labels.to(device)
@@ -490,6 +416,10 @@ def evaluate_one_epoch(model, criterion, dataset, device="cpu", owned_items=None
             loss = criterion(logits, labels)
             tot_loss += loss.item()
             recommendations = logits_to_recs(logits.detach().cpu().numpy())
+            
+            logits_.append(logits.detach().cpu().numpy())
+            recommendations_.append(recommendations)
+            
             real_recommendations = [i for i, p in enumerate(labels[0].detach().cpu().numpy()) if int(float(p)) == 1]
             if owned_items is not None:
                 old_items = [i for i, p in enumerate(owned_items[j]) if int(float(p)) == 1]
@@ -514,41 +444,30 @@ def evaluate_one_epoch(model, criterion, dataset, device="cpu", owned_items=None
         ndcg20 /= n_users
         metrics_dict = {"prec1": tot_prec1, "prec3": tot_prec3, "prec5": tot_prec5,
                         "prec10": tot_prec10, "mrr20": mrr20, "ndcg20": ndcg20}
+    if return_logits: return logits_
+    if return_recs: return recommendations_
     return tot_loss, metrics_dict
 
         
 def train_pipeline(train_dataset, val_dataset, model, args):
-    """Training pipeline
-
-    :param train_dataset: train dataset
-    :type train_dataset:  torch.utils.data.Dataset
-    :param val_dataset: val dataset
-    :type val_dataset: torch.utils.data.Dataset
-    :param model: model to train
-    :type model: Transformer
-    :param args: arguments for training
-    :type args: argparse.ArgumentParser
-    :return: trained model
-    :rtype: Transformer
-    """
     
     # Set criterion and optimizer
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.99), eps=1e-9)
     
-    # warmup lr
-    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.warmup_epochs], gamma=0.1)
-    if args.warmup_type == 'linear':
-        warmup_scheduler = warmup.UntunedLinearWarmup(optimizer)
-    elif args.warmup_type == 'exponential':
-        warmup_scheduler = warmup.UntunedExponentialWarmup(optimizer)
-    elif args.warmup_type == 'radam':
-        warmup_scheduler = warmup.RAdamWarmup(optimizer)
-    else:
-        warmup_scheduler = warmup.LinearWarmup(optimizer, 1)
+#     # warmup lr
+#     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.warmup_epochs], gamma=0.1)
+#     if args.warmup_type == 'linear':
+#         warmup_scheduler = warmup.UntunedLinearWarmup(optimizer)
+#     elif args.warmup_type == 'exponential':
+#         warmup_scheduler = warmup.UntunedExponentialWarmup(optimizer)
+#     elif args.warmup_type == 'radam':
+#         warmup_scheduler = warmup.RAdamWarmup(optimizer)
+#     else:
+#         warmup_scheduler = warmup.LinearWarmup(optimizer, 1)
 
-    # initialize the step counter
-    warmup_scheduler.last_step = -1
+#     # initialize the step counter
+#     warmup_scheduler.last_step = -1
     
     # Set initials for model savings
     best_model = copy.deepcopy(model.state_dict())
@@ -560,7 +479,8 @@ def train_pipeline(train_dataset, val_dataset, model, args):
     start = time.time()
     print("training...")
     for epoch in range(args.epochs):
-        train_loss = train_one_epoch(model, optimizer, criterion, train_dataset, lr_scheduler, warmup_scheduler, epoch, args.batch_size, args.device)
+        #train_loss = train_one_epoch(model, optimizer, criterion, train_dataset, lr_scheduler, warmup_scheduler, epoch, args.batch_size, args.device)
+        train_loss = train_one_epoch(model, optimizer, criterion, train_dataset, None, None, epoch, args.batch_size, args.device)
         print(f"epoch {epoch + 1} | train loss: {train_loss}")
         train_losses[epoch] = train_loss
         
@@ -576,28 +496,29 @@ def train_pipeline(train_dataset, val_dataset, model, args):
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     best_model = copy.deepcopy(model.state_dict())
-                    torch.save(best_model, 
-                               os.path.join(args.weights_path, f"best_model_weights.pth"))
-                    print(f"Best model with new best validation score {best_val_loss} saved at ", 
-                          os.path.join(args.weights_path, "best_model_weights.pth"))
+                    torch.save(best_model, os.path.join(args.weights_path, f"best_model_weights.pth"))
+                    print(f"Best model with new best validation score {best_val_loss} saved at ", os.path.join(args.weights_path, "best_model_weights.pth"))
 
         # Model saving
         if args.save_weights_epoch is not None and epoch % args.save_weights_epoch == 0:
                 torch.save(model.state_dict(), os.path.join(args.weights_path, f"weights_{epoch}.pth"))
                 print("model saved at", os.path.join(args.weights_path, f"weights_{epoch}.pth"))
-        print("finished training in", time.time() - start)
 
+        print("finished training in", time.time() - start)
+        
     # Logs saving
     if args.log_dir is not None:
         with open(os.path.join(args.log_dir, 'train_logs.pkl'),'wb') as handle:
             pickle.dump(train_losses, handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open(os.path.join(args.log_dir, 'val_logs.pkl'),'wb') as handle:
             pickle.dump(val_losses, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            
     return model
-
+        
+        
 def __main__():
     parser = argparse.ArgumentParser()
-
+    
     # Dataset location
     # Datasets are supposed to be written into files
     # TRAIN
@@ -617,7 +538,7 @@ def __main__():
     parser.add_argument('--train_dataset', type=str, default=None)
     parser.add_argument('--val_dataset', type=str, default=None)
     parser.add_argument('--test_dataset', type=str, default=None)
-
+    
     # Configuration of usage
     parser.add_argument('--no_train', type=bool, default=False)
     parser.add_argument('--no_val', type=bool, default=False)
@@ -628,18 +549,18 @@ def __main__():
     parser.add_argument('--predict_only', type=bool, default=False)
     parser.add_argument('--predictions_save_file', type=str, default='./prediction.npy')
     parser.add_argument('--prediction_type', type=str, default='logits')
-
+    
     # Info about data
     parser.add_argument('--n_items', type=int, default=22)
     parser.add_argument('--limit_rows', type=int, default=1_000_000)
-
+    
     # Model configuration
     parser.add_argument('--hidden_size', type=int, default=2048)
     parser.add_argument('--n_layers', type=int, default=10)
     parser.add_argument('--heads', type=int, default=7)
     parser.add_argument('--d_model', type=int, default=42)
     parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
-
+    
     # Training params
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--dropout', type=float, default=0.1)
@@ -649,8 +570,20 @@ def __main__():
     parser.add_argument('--val_every_n', type=int, default=1)
     parser.add_argument('--log_dir', type=str, default=None)
     parser.add_argument('--epochs', type=int, default=1)
+    
+    # Module testing parameters
+    parser.add_argument('--test_dataset_only', type=bool, default=False)
 
     args = parser.parse_args()
+    
+    # Test dataset
+    if args.test_dataset_only:
+            test_x = np.load(os.path.join(args.test_dataset, "x.npy"))
+            test_y = np.load(os.path.join(args.test_dataset, "y.npy"))
+            #test_set = CustomDataset(test_x, test_y, nrows=args.limit_rows)
+            print(f'Test dataset shape: {test_x.shape}')
+            print(f'Users history length: {test_x.shape[1]}')
+            return 0
 
     assert args.prediction_type in ['logits', 'recommendations'], "Specify prediction_type one of 'logits' or 'recommendations'"
     
@@ -728,6 +661,6 @@ def __main__():
             print("--Test results--")
             print("Test loss:", test_loss)
             print_metrics_dict(test_metrics)
-
+        
 if __name__ == '__main__':
     __main__()
