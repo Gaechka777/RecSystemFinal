@@ -49,7 +49,9 @@ def make_interactions(df, output_interactions_data):
                 df_interactions_index.loc[get_user_product.count] = [timestamp, row["ncodpers"], i + 1]
                 get_user_product.count += 1
         get_user_product.count_rows += 1
-        print('progress:', round(get_user_product.count_rows / df_interactions_vector.shape[0], 3) * 100, "%")
+        progress = round(get_user_product.count_rows / df_interactions_vector.shape[0], 5) * 100
+        if progress in set([0.0,25.0,75.0]):
+            print('progress:', progress, "%")
 
     df_interactions_vector.apply(get_user_product, axis=1)
     df_interactions_index["ITEM_ID"] = df_interactions_index["ITEM_ID"].astype(int)
@@ -69,7 +71,7 @@ def make_interactions(df, output_interactions_data):
 
 
 def create_subsample(input_file: str = "train.csv",
-                     sample_size: int = 200000,
+                     sample_size: int = 2000,
                      min_data_points: float = 17,
                      seed: int = 0):
     """
@@ -86,6 +88,7 @@ def create_subsample(input_file: str = "train.csv",
         - dataset_reduced: sub-sampled dataset containing (sample_size) users,
           each of them having at least 'min_data_points' timestamps.
     """
+    print("making data subsample...")
     df = pd.read_csv(input_file)
     assert sample_size > 0, "sample_size param should be > 0"
     assert min_data_points >= 0, "min_data_points param should be >= 0"

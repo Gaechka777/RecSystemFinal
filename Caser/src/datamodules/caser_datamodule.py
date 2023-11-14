@@ -212,7 +212,7 @@ class SantanderDataModule(LightningDataModule):
             batch_size: int = 64,
             num_workers: int = 0,
             pin_memory: bool = False,
-            sample_size: int = 20000,
+            sample_size: int = 2000,
             min_data_points: float = 17,
             seed: int = 0,
             sequence_length: int = 5,
@@ -262,6 +262,8 @@ class SantanderDataModule(LightningDataModule):
             make_interactions_data(str(data_path).split(".csv")[0] + "_reduced.csv",
                                    preprocessed_data_path)
             train_val_test_split(preprocessed_data_path, out_dir)
+        else:
+            print("preparing data has already done!")
 
     def setup(self, stage: Optional[str] = None):
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
@@ -280,6 +282,8 @@ class SantanderDataModule(LightningDataModule):
             self.data_train = Dataset_caser(self.args, preprocessed_data_path_train, "train")
             self.data_val = Dataset_caser(self.args, preprocessed_data_path_train, "val", preprocessed_data_path_val)
             self.data_test = Dataset_caser(self.args, preprocessed_data_path_train, "test", preprocessed_data_path_test)
+            
+            print("Train, validation and test datasets are ready for use!")
 
     def train_dataloader(self):
         return DataLoader(

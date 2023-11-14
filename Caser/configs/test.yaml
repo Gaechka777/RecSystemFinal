@@ -3,12 +3,12 @@
 # specify here default evaluation configuration
 defaults:
   - _self_
-  - datamodule: base_datamodule.yaml # choose the datamodule for evaluation
-  - model: ccnn.yaml
-  - callbacks: null
-  - logger: null
+  - datamodule: caser_datamodule.yaml
+  - model: caser.yaml
+  - callbacks: default.yaml
+  - logger: comet.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
-  - log_dir: evaluation.yaml
+  - log_dir: default.yaml
 
   - experiment: null
 
@@ -18,7 +18,12 @@ defaults:
 
 original_work_dir: ${hydra:runtime.cwd}
 
+# path to folder with data
 data_dir: ${original_work_dir}/data/
+dataset_name: "train_ver2.csv"
+dataset_name_test: "train_ver2.csv"
+batch_size: 64
+num_epochs: 10
 unix_time: False
 num_types:
 
@@ -31,4 +36,4 @@ seed: null
 name: "default"
 
 # passing checkpoint path is necessary
-ckpt_path: ???
+ckpt_path: test_ckpt\last.ckpt
