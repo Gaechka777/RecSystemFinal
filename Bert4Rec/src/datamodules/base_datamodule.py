@@ -11,7 +11,6 @@ from .negative_samplers.random import get_negative_samples
 class BertTrainDataset(Dataset):
     def __init__(self, u2seq, max_len, mask_prob, mask_token, num_items, rng):
         """
-        Пишу на русском для простоты понимания
         Args:
             u2seq: словарь юзеров, где для каждого юзера записана последовательность токенов(итемов)
             max_len: длина заполнения истории, так как для юзеров длина последовательности разная
