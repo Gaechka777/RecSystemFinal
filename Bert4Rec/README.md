@@ -29,6 +29,7 @@ python train.py --config-name=train_bert.yaml trainer.gpus=[0]
 # Configurations
 
 #### Data
+The data can be downloaded from this link https://drive.google.com/file/d/1neWDpxAuVGH8_0u4iMA0vwA_PbAOGp-2/view?usp=sharing.
 
 - In this experiment we use Santander bank`s dataset from (https://www.kaggle.com/c/santander-product-recommendation)
 
