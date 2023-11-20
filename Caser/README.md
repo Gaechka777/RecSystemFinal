@@ -20,6 +20,8 @@ A PyTorch implementation of Convolutional Sequence Embedding Recommendation Mode
 
 #### Data
 
+The data can be downloaded from this link (https://drive.google.com/file/d/1te9dc86cXWvpyy12vbbaNqbSDpkibPri/view?usp=sharing).
+
 - In this experiment we use Santander bank`s dataset from (https://www.kaggle.com/c/santander-product-recommendation)
 
 - After special preprocessing we obtain train, val and test datasets, each file contains a collection of quadrets:
