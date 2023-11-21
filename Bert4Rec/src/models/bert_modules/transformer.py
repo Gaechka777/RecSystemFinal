@@ -14,10 +14,10 @@ class TransformerBlock(nn.Module):
         """
 
         Args:
-            hidden: размер скрытого состояния трансформера
-            attn_heads: количество голов
-            feed_forward_hidden: размер латентного пространтсва для полносвязной нейронной сети
-            dropout:
+            hidden: the size of the hidden state of the transformer
+            attn_heads: number of heads
+            feed_forward_hidden: the size of the latent space for a fully connected neural network
+            dropout: value for dropout function
         """
 
         super().__init__()

@@ -6,6 +6,20 @@ import numpy as np
 
 def generate_negative_samples(train, val, test, user_count, item_count, train_negative_sample_size,
                               train_negative_sampling_seed):
+    """
+
+    Args:
+        train: train dataset
+        val: valid dataset
+        test: test dataset
+        user_count: number of users
+        item_count: number of items
+        train_negative_sampling_seed: seed for random
+        train_negative_sample_size: number of negative samples
+
+    Return:
+    Negative samples for each user
+    """
     assert train_negative_sampling_seed is not None, 'Specify seed for random sampling'
     np.random.seed(train_negative_sampling_seed)
     items = np.arange(item_count) + 1
@@ -36,6 +50,21 @@ def generate_negative_samples(train, val, test, user_count, item_count, train_ne
 
 def get_negative_samples(train, val, test, user_count, item_count, train_negative_sample_size,
                          train_negative_sampling_seed, save_folder):
+    """
+
+    Args:
+        train: train dataset
+        val: valid dataset
+        test: test dataset
+        user_count: number of users
+        item_count: number of items
+        train_negative_sampling_seed: seed for random
+        train_negative_sample_size: number of negative samples
+        save_folder: path to save negative samples
+
+    Return:
+    Negative samples for each user
+    """
     savefile_path = _get_save_path(save_folder, train_negative_sample_size,
                                    train_negative_sampling_seed)
     if savefile_path.is_file():
@@ -52,6 +81,16 @@ def get_negative_samples(train, val, test, user_count, item_count, train_negativ
 
 
 def _get_save_path(save_folder, train_negative_sample_size, train_negative_sampling_seed):
+    """
+
+    Args:
+        save_folder: path to save negative samples
+        train_negative_sample_size: number of negative samples
+        train_negative_sampling_seed: seed for random
+
+    Return:
+    path for negative samples
+    """
     folder = Path(save_folder)
     print('random', train_negative_sample_size, train_negative_sampling_seed)
     filename = '{}-sample_size{}-seed{}.pkl'.format('random', train_negative_sample_size,

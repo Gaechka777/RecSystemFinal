@@ -4,7 +4,7 @@ from .single import Attention
 
 class MultiHeadedAttention(nn.Module):
     """
-    Реализация многоголового внимания
+    Implementation of multi-headed attention
     """
 
     def __init__(self, h, d_model, dropout=0.1):

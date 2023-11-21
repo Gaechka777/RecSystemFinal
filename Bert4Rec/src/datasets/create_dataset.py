@@ -30,11 +30,26 @@ user_features = ['fetch_date', 'cust_code', 'emp_index', 'country', 'sex', 'age'
 
 
 def preprocess_missing_values(data):
+    """
+
+    Args:
+        data: dataset
+
+    Return:
+    Dataset without missing values
+    """
     data[target_columns] = data[target_columns].fillna(0)
     return data
 
 
 def create(path, name_file):
+    """
+
+    Args:
+        name_file: name file which was converted from the init file
+        path: path to data
+
+    """
     global user_features
 
     if os.path.exists(os.path.dirname(path) + '/' + 'santander' + '/' + f'{name_file}.dat'):

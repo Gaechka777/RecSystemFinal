@@ -4,13 +4,13 @@ import numpy as np
 
 
 def calculate_loss(logits, labels):
-    """
+    """"
     Args:
-        logits: выход модели
-        labels: истинные значения
+        logits: model output
+        labels: true values
 
     Returns:
-    Посчитанная функция потерь
+    Calculated loss function
     """
     logits = logits.view(-1, logits.size(-1))  # (B*T) x V
     labels = labels.view(-1)  # B*T
@@ -39,17 +39,17 @@ def calculate_metrics(scores,
     """
 
     Args:
-        scores: выход модели, оценка уверенности для каждой категории для определенного клиента
-        candidates: кандидаты категорий, которые мы хотим рассмотреть
-        labels: истинные значения
+        scores: model output, confidence score for each category for a specific customer
+        candidates: candidates of the categories we want to consider
+        labels: true values
         stage: train/val/test
-        cand_need: для вывода рекомендация для каждого пользователя, есть кандидаты или нет
-        k_labels: сколько категорий предсказываем
-        batch_idx: номер батча
-        path_to_res: путь для сохранения результатов
+        can_need: to output a recommendation for each user, there are candidates or not
+        k_labels: how many categories are we predicting
+        batch_idx: batch number
+        path_to_res: path to save results
 
     Returns:
-    Словарь метрик
+    Dict of metrics
     """
     scores = scores[:, -1, :]
     path_res = f'{path_to_res}results_{batch_idx}.txt'
@@ -78,12 +78,12 @@ def recalls_and_ndcgs_for_ks(scores, labels, ks):
     """
 
     Args:
-        scores: выход нашей модели
-        labels: что должны получить, ground-truth
-        ks: топ-к
+        scores: output of our model
+        labels: true values(ground-truth)
+        ks: top-k
 
     Returns:
-    Словарь метрик Recall@k, NDCG@k, MRR@k
+    Dictionary of Metrics Recall@k, NDCG@k, MR@k
     """
     metrics = {}
 

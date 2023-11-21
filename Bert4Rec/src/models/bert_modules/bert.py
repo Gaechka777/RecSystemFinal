@@ -18,7 +18,7 @@ def fix_random_seed_as(random_seed):
 
 class BERT(nn.Module):
     """
-    Инициализируем модель
+    Initialize model
     """
     def __init__(self,
                  model_init_seed,

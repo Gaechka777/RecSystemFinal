@@ -9,16 +9,18 @@ from .negative_samplers.random import get_negative_samples
 
 
 class BertTrainDataset(Dataset):
+    """
+    Simple Torch Train Dataset for Bert.
+
+    Args:
+        u2seq: a dictionary of users, where a sequence of tokens (items) is recorded for each user
+        max_len: the length of the history filling, since the sequence length is different for users
+        mask_prob: the probability of choosing a particular token
+        mask_token: mask for the labels we want to predict
+        num_items: number of items
+        rng: random probability generator
+    """
     def __init__(self, u2seq, max_len, mask_prob, mask_token, num_items, rng):
-        """
-        Args:
-            u2seq: словарь юзеров, где для каждого юзера записана последовательность токенов(итемов)
-            max_len: длина заполнения истории, так как для юзеров длина последовательности разная
-            mask_prob: вероятность выбора того или иного токена
-            mask_token: маска для лейблов, которые мы хотим предсказывать
-            num_items: количество итемов
-            rng: генератор случайных вероятностей
-        """
         self.u2seq = u2seq
         self.users = sorted(self.u2seq.keys())
         self.max_len = max_len
@@ -64,6 +66,20 @@ class BertTrainDataset(Dataset):
 
 
 class BertEvalDataset(Dataset):
+    """
+    Simple Torch Valid and Test Dataset for Bert.
+
+    Args:
+        u2seq: a dictionary of users, where a sequence of tokens (items) is recorded for each user
+        users: list of user's keys
+        u2answer: answer for each user key
+        max_len: the length of the history filling, since the sequence length is different for users
+        mask_token: mask for the labels we want to predict
+        negative_samples: negative samples
+        k_labels: k labels for prediction
+        min_uc: min number of items for users
+
+    """
     def __init__(self, u2seq, u2answer, max_len, mask_token, negative_samples, k_labels, min_uc):
         self.u2seq = u2seq
         self.users = sorted(self.u2seq.keys())
@@ -96,6 +112,41 @@ class BertEvalDataset(Dataset):
 
 
 class BertDataModule(LightningDataModule):
+    """LightningDataModule for Santander dataset.
+
+        A DataModule implements 5 key methods:
+            - prepare_data (things to do on 1 GPU/TPU, not on every GPU/TPU in distributed mode)
+            - setup (things to do on every accelerator in distributed mode)
+            - train_dataloader (the training dataloader)
+            - val_dataloader (the validation dataloader(s))
+            - test_dataloader (the test dataloader(s))
+
+        This allows you to share a full dataset without explaining how to download,
+        split, transform and process the data.
+
+        Read the docs:
+            https://pytorch-lightning.readthedocs.io/en/latest/extensions/datamodules.html
+
+
+        Args:
+            name_file: name file which was converted from the init file
+            data_path: path to data
+            init_file: original file
+            k_labels: k labels for prediction
+            min_uc: min number of items for users
+            seed: seed for model
+            bert_max_len: the length of the history filling, since the sequence length is different for users
+            bert_mask_prob: the probability of choosing a particular token
+            train_negative_sample_size: number of negative samples
+            train_negative_sampling_seed: seed for random
+            test_negative_sample_size: number of negative samples
+            test_negative_sampling_seed: seed for random
+            train_batch_size: size for train batch
+            val_batch_size: size for valid batch
+            test_batch_size: size for test batch
+            num_workers: number of workers for dataloader
+            pin_memory: used as a staging area for transfers from the device to the host
+    """
     def __init__(self,
                  name_file,
                  data_path,
@@ -117,7 +168,7 @@ class BertDataModule(LightningDataModule):
         super().__init__()
         self.seed = seed
         self.rng = random.Random(self.seed)
-        self.save_folder = _get_preprocessed_folder_path()
+        self.save_folder = _get_preprocessed_folder_path(data_path)
         self.k_labels = k_labels
         self.min_uc = min_uc
         create(data_path + init_file, name_file)

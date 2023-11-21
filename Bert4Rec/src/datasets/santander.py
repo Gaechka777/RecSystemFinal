@@ -4,18 +4,27 @@ import numpy as np
 import pandas as pd
 from .utils import *
 
-RAW_DATASET_ROOT_FOLDER = '/NOTEBOOK/RecSystem/RecSystemFinal/Bert4Rec/Data/'
+#RAW_DATASET_ROOT_FOLDER = '/NOTEBOOK/RecSystem/RecSystemFinal/Bert4Rec/Data/'
 
 
 def code():
+    """
+    Additional function
+    """
     return 'santander'
 
 
 def zip_file_content_is_folder():
+    """
+    Additional function
+    """
     return True
 
 
 def all_raw_file_names():
+    """
+    Additional function
+    """
     return ['README',
             'movies.dat',
             'ratings.dat',
@@ -23,6 +32,15 @@ def all_raw_file_names():
 
 
 def load_ratings_df(data_path, name_file):
+    """
+
+    Args:
+        name_file: name file which was converted from the init file
+        data_path: path to data
+
+    Return:
+    Dataframe
+    """
     #folder_path = _get_rawdata_folder_path()
     file_path = data_path + f'santander/{name_file}.dat'
     df = pd.read_csv(file_path, sep='::', header=None)
@@ -32,14 +50,34 @@ def load_ratings_df(data_path, name_file):
 
 
 def load_dataset(data_path, name_file, k_labels=3, min_uc=10):
+    """
+
+    Args:
+        name_file: name file which was converted from the init file
+        data_path: path to data
+        k_labels: number of labels for prediction
+        min_uc: min number of items for users
+
+    Return:
+    Dataset
+    """
     preprocess(data_path, name_file, k_labels, min_uc)
-    dataset_path = _get_preprocessed_dataset_path()
+    dataset_path = _get_preprocessed_dataset_path(data_path)
     dataset = pickle.load(dataset_path.open('rb'))
     return dataset
 
 
 def preprocess(data_path, name_file, k_labels=3, min_uc=10):
-    dataset_path = _get_preprocessed_dataset_path()
+    """
+
+    Args:
+        name_file: name file which was converted from the init file
+        data_path: path to data
+        k_labels: number of labels for prediction
+        min_uc: min number of items for users
+
+    """
+    dataset_path = _get_preprocessed_dataset_path(data_path)
     if dataset_path.is_file():
         print('Already preprocessed. Skip preprocessing')
         return
@@ -62,6 +100,15 @@ def preprocess(data_path, name_file, k_labels=3, min_uc=10):
 
 
 def make_implicit(df, min_rating=0):
+    """
+
+    Args:
+        df: dataframe
+        min_rating: min value rating
+
+    Return:
+    Dataframe
+    """
     print('Turning into implicit ratings')
     df = df[df['rating'] >= min_rating]
     # return df[['uid', 'sid', 'timestamp']]
@@ -70,6 +117,16 @@ def make_implicit(df, min_rating=0):
 
 
 def filter_triplets(df, min_sc=0, min_uc=10):
+    """
+
+    Args:
+        df: dataframe
+        min_sc: min value for each item
+        min_uc: min value of items for each user
+
+    Return:
+    Dtaframe
+    """
     print('Filtering triplets')
     if min_sc > 0:
         item_sizes = df.groupby('sid').size()
@@ -86,6 +143,12 @@ def filter_triplets(df, min_sc=0, min_uc=10):
 
 
 def densify_index(df):
+    """
+
+    Args:
+        df: dataframe
+
+    """
     print('Densifying index')
     umap = {u: i for i, u in enumerate(set(df['uid']))}
     smap = {s: i for i, s in enumerate(set(df['sid']))}
@@ -95,6 +158,17 @@ def densify_index(df):
 
 
 def split_df(df, user_count, split='leave_one_out', k_labels=3):
+    """
+
+    Args:
+        df: dataframe
+        user_count: number of users
+        split: type for split
+        k_labels: number of labels for prediction
+
+    Return:
+    Train, valid and test dataset
+    """
     if split == 'leave_one_out':
         print('Splitting')
         user_group = df.groupby('uid')
@@ -132,29 +206,69 @@ def split_df(df, user_count, split='leave_one_out', k_labels=3):
         raise NotImplementedError
 
 
-def _get_rawdata_root_path():
-    return Path(RAW_DATASET_ROOT_FOLDER)
+def _get_rawdata_root_path(data_path):
+    """
+
+    Args:
+        data_path: path to data
+
+    Return:
+    Path to data
+    """
+    return Path(data_path)
 
 
-def _get_rawdata_folder_path():
-    root = _get_rawdata_root_path()
+def _get_rawdata_folder_path(data_path):
+    """
+
+    Args:
+        data_path: path to data
+
+    Return:
+    Path to raw data
+    """
+    root = _get_rawdata_root_path(data_path)
     return root.joinpath(code())
 
 
-def _get_preprocessed_root_path():
-    root = _get_rawdata_root_path()
+def _get_preprocessed_root_path(data_path):
+    """
+
+    Args:
+        data_path: path to data
+
+    Return:
+    Path to preprocessed data
+    """
+    root = _get_rawdata_root_path(data_path)
     return root.joinpath('preprocessed')
 
 
-def _get_preprocessed_folder_path(min_rating=0, min_uc=5, min_sc=0, split='leave_one_out'):
-    preprocessed_root = _get_preprocessed_root_path()
+def _get_preprocessed_folder_path(data_path, min_rating=0, min_uc=5, min_sc=0, split='leave_one_out'):
+    """
+
+    Args:
+        data_path: path to data
+
+    Return:
+    Folder name
+    """
+    preprocessed_root = _get_preprocessed_root_path(data_path)
     folder_name = '{}_min_rating{}-min_uc{}-min_sc{}-split{}' \
         .format(code(), min_rating, min_uc, min_sc, split)
     return preprocessed_root.joinpath(folder_name)
 
 
-def _get_preprocessed_dataset_path():
-    folder = _get_preprocessed_folder_path()
+def _get_preprocessed_dataset_path(data_path):
+    """
+
+    Args:
+        data_path: path to data
+
+    Return:
+    Path folder
+    """
+    folder = _get_preprocessed_folder_path(data_path)
     return folder.joinpath('dataset.pkl')
 
 

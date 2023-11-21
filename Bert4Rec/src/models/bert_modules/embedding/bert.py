@@ -5,23 +5,23 @@ from .position import PositionalEmbedding
 
 class BERTEmbedding(nn.Module):
     """
-    Эмбеддинг BERT, которое состоит из нижеприведенных функций
-        1. Представление токена: обычная матрица эмбеддингов
-        2. Позиционное представление: добавление позиционной информации
-        с использованием sin, cos
-        2. Эмбеддинг сегмента: добавление segmentinfo предложения, (sent_A:1, cent_B:2)
-        (не используем)
-        сумма всех этих функций является представлением BERT
+    Embedding BERT, which consists of the following functions
+        1. Token representation: the usual embedding matrix
+        2. Positional representation: Adding positional information
+        using sin, cos
+        3. Embedding a segment: adding segment info sentences, (sent_A:1, cent_B:2) (do not use)
+
+    The sum of all these functions is a representation of BERT
     """
 
     def __init__(self, vocab_size, embed_size, max_len, dropout=0.1):
         """
 
         Args:
-            vocab_size: общий размер словаря
-            embed_size: размер представления токена
-            max_len: максимальная длина последовательности
-            dropout: процент разреживания
+            vocab_size: the total size of the dictionary
+            embed_size: the size of the token representation
+            max_len: maximum sequence length
+            dropout: value for dropout function
         """
 
         super().__init__()

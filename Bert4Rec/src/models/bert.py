@@ -97,11 +97,11 @@ class BERTModel(LightningModule):
         """
 
         Args:
-            batch: батч, который состоит из последовательности категорий и
-            последовательности истинных лейблов
+            batch: a batch that consists of a sequence of categories and
+            a sequence of true labels
 
         Returns:
-        В логи передаем лосс, можно использовать cometa для просмотра качества обучения
+        We transmit the loss to the logs, you can use cometa to view the quality of training
         """
         loss, preds, targets = self.step(batch, 'train', batch_idx)
         self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=True)
@@ -118,12 +118,11 @@ class BERTModel(LightningModule):
         """
 
         Args:
-            batch: батч, который состоит из последовательности категорий и
-            последовательности истинных лейблов,
-            также последовательность кандидатов
+            batch: a batch that consists of a sequence of categories and
+            a sequence of true labels, also the sequence of candidates
 
         Returns:
-        Посчитанные метрики и предсказания
+        Calculated metrics and predictions
         """
         preds, metrics = self.step(batch, 'val', batch_idx)
         self.log(
@@ -202,12 +201,11 @@ class BERTModel(LightningModule):
         """
 
         Args:
-            batch: батч, который состоит из последовательности категорий и
-            последовательности истинных лейблов,
-            также последовательность кандидатов
+            batch: a batch that consists of a sequence of categories and
+            a sequence of true labels, also the sequence of candidates
 
         Returns:
-        Посчитанные метрики и предсказания
+        Calculated metrics and predictions
         """
         preds, metrics = self.step(batch, 'test', batch_idx)
         self.log(
