@@ -68,4 +68,13 @@ _______________________________________
 
 python brec.py --train_dataset ~/data/ --val_dataset ~/data/ --no_test True --weights_path ~/Models/BREC_Ready --device cuda --dropout 0.0 --val_every_n 3 --log_dir ~/Logs --epochs 10
 
+Информация по данным:
+
+Данные для тестирования модели можно найти по ссылкам:
+
+https://drive.google.com/file/d/1tR2DaBxrokUpXvWkv2dzqZBwf7aEAIv6/view?usp=sharing
+https://drive.google.com/file/d/1IZZIzsm9k48QytylQTLf5cwekrwHolwk/view?usp=sharing
+
+Для тестирования модели нужно загрузить указанные файлы в папку data локально.
+
 
